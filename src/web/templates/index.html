@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 포커 솔버</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 10px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .warning {
+            background: #c0392b;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 12px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+        
+        .section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            color: #bbb;
+            margin-bottom: 10px;
+        }
+        
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .col {
+            flex: 1;
+            min-width: 80px;
+        }
+        
+        label {
+            display: block;
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 4px;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        select option {
+            background: #2c3e50;
+            color: #fff;
+        }
+        
+        .card-selector {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .card-selector select {
+            flex: 1;
+        }
+        
+        .street-btns {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .street-btn {
+            flex: 1;
+            padding: 10px 5px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        
+        .street-btn.active {
+            background: #3498db;
+        }
+        
+        .quick-bets {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .quick-bet {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .analyze-btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #27ae60;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .analyze-btn:active {
+            background: #219a52;
+        }
+        
+        .result {
+            text-align: center;
+        }
+        
+        .equity {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .action {
+            font-size: 28px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .detail {
+            background: rgba(0,0,0,0.3);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            white-space: pre-line;
+            text-align: left;
+        }
+        
+        .board-cards {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .board-card {
+            flex: 1;
+        }
+        
+        .board-card select {
+            padding: 8px 4px;
+            font-size: 14px;
+        }
+        
+        .reset-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #3498db;
+            color: #fff;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="warning">⚠️ 학습용 - 리얼머니 게임 실시간 사용 금지</div>
+        
+        <h1>🎰 포커 솔버</h1>
+        
+        <!-- 내 핸드 -->
+        <div class="section">
+            <div class="section-title">🃏 내 핸드</div>
+            <div class="row">
+                <div class="col">
+                    <label>포지션</label>
+                    <select id="myPosition">
+                        <option value="BTN">BTN</option>
+                        <option value="CO">CO</option>
+                        <option value="HJ">HJ</option>
+                        <option value="UTG">UTG</option>
+                        <option value="SB">SB</option>
+                        <option value="BB">BB</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label>카드 1</label>
+                    <div class="card-selector">
+                        <select id="card1Rank">
+                            <option value="">-</option>
+                            <option>A</option><option>K</option><option>Q</option><option>J</option><option>T</option>
+                            <option>9</option><option>8</option><option>7</option><option>6</option><option>5</option>
+                            <option>4</option><option>3</option><option>2</option>
+                        </select>
+                        <select id="card1Suit">
+                            <option value="">-</option>
+                            <option value="s">♠</option>
+                            <option value="h">♥</option>
+                            <option value="d">♦</option>
+                            <option value="c">♣</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col">
+                    <label>카드 2</label>
+                    <div class="card-selector">
+                        <select id="card2Rank">
+                            <option value="">-</option>
+                            <option>A</option><option>K</option><option>Q</option><option>J</option><option>T</option>
+                            <option>9</option><option>8</option><option>7</option><option>6</option><option>5</option>
+                            <option>4</option><option>3</option><option>2</option>
+                        </select>
+                        <select id="card2Suit">
+                            <option value="">-</option>
+                            <option value="s">♠</option>
+                            <option value="h">♥</option>
+                            <option value="d">♦</option>
+                            <option value="c">♣</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 상대 정보 -->
+        <div class="section">
+            <div class="section-title">👤 상대</div>
+            <div class="row">
+                <div class="col">
+                    <label>상대 포지션</label>
+                    <select id="villainPosition">
+                        <option value="UTG">UTG</option>
+                        <option value="HJ">HJ</option>
+                        <option value="CO" selected>CO</option>
+                        <option value="BTN">BTN</option>
+                        <option value="SB">SB</option>
+                        <option value="BB">BB</option>
+                    </select>
+                </div>
+                <div class="col">
+                    <label>플레이어 수</label>
+                    <select id="numPlayers">
+                        <option value="2">2명</option>
+                        <option value="3">3명</option>
+                        <option value="4">4명</option>
+                        <option value="5">5명</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 스트릿 -->
+        <div class="section">
+            <div class="section-title">📍 스트릿</div>
+            <div class="street-btns">
+                <button class="street-btn active" onclick="setStreet('preflop')">프리플랍</button>
+                <button class="street-btn" onclick="setStreet('flop')">플랍</button>
+                <button class="street-btn" onclick="setStreet('turn')">턴</button>
+                <button class="street-btn" onclick="setStreet('river')">리버</button>
+            </div>
+        </div>
+        
+        <!-- 보드 -->
+        <div class="section" id="boardSection" style="display:none;">
+            <div class="section-title">🎴 보드</div>
+            <div class="board-cards">
+                <div class="board-card">
+                    <select id="board1Rank"><option value="">-</option><option>A</option><option>K</option><option>Q</option><option>J</option><option>T</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option></select>
+                    <select id="board1Suit"><option value="">-</option><option value="s">♠</option><option value="h">♥</option><option value="d">♦</option><option value="c">♣</option></select>
+                </div>
+                <div class="board-card">
+                    <select id="board2Rank"><option value="">-</option><option>A</option><option>K</option><option>Q</option><option>J</option><option>T</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option></select>
+                    <select id="board2Suit"><option value="">-</option><option value="s">♠</option><option value="h">♥</option><option value="d">♦</option><option value="c">♣</option></select>
+                </div>
+                <div class="board-card">
+                    <select id="board3Rank"><option value="">-</option><option>A</option><option>K</option><option>Q</option><option>J</option><option>T</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option></select>
+                    <select id="board3Suit"><option value="">-</option><option value="s">♠</option><option value="h">♥</option><option value="d">♦</option><option value="c">♣</option></select>
+                </div>
+                <div class="board-card" id="turnCard" style="display:none;">
+                    <select id="board4Rank"><option value="">-</option><option>A</option><option>K</option><option>Q</option><option>J</option><option>T</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option></select>
+                    <select id="board4Suit"><option value="">-</option><option value="s">♠</option><option value="h">♥</option><option value="d">♦</option><option value="c">♣</option></select>
+                </div>
+                <div class="board-card" id="riverCard" style="display:none;">
+                    <select id="board5Rank"><option value="">-</option><option>A</option><option>K</option><option>Q</option><option>J</option><option>T</option><option>9</option><option>8</option><option>7</option><option>6</option><option>5</option><option>4</option><option>3</option><option>2</option></select>
+                    <select id="board5Suit"><option value="">-</option><option value="s">♠</option><option value="h">♥</option><option value="d">♦</option><option value="c">♣</option></select>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 팟/베팅 -->
+        <div class="section">
+            <div class="section-title">💰 팟 & 베팅</div>
+            <div class="row">
+                <div class="col">
+                    <label>팟</label>
+                    <input type="number" id="pot" value="100" min="0">
+                </div>
+                <div class="col">
+                    <label>상대 베팅</label>
+                    <input type="number" id="toCall" value="0" min="0">
+                </div>
+            </div>
+            <div class="quick-bets">
+                <button class="quick-bet" onclick="quickBet(0.33)">1/3</button>
+                <button class="quick-bet" onclick="quickBet(0.5)">1/2</button>
+                <button class="quick-bet" onclick="quickBet(0.67)">2/3</button>
+                <button class="quick-bet" onclick="quickBet(1.0)">팟</button>
+            </div>
+        </div>
+        
+        <!-- 분석 버튼 -->
+        <button class="analyze-btn" onclick="analyze()">🔍 분석</button>
+        
+        <!-- 결과 -->
+        <div class="section result" id="resultSection" style="display:none;">
+            <div class="equity" id="equity">승률: --%</div>
+            <div class="action" id="action">--</div>
+            <div class="detail" id="detail"></div>
+        </div>
+        
+        <button class="reset-btn" onclick="resetAll()">🔄 새 핸드</button>
+    </div>
+    
+    <script>
+        let currentStreet = 'preflop';
+        
+        function setStreet(street) {
+            currentStreet = street;
+            document.querySelectorAll('.street-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const boardSection = document.getElementById('boardSection');
+            const turnCard = document.getElementById('turnCard');
+            const riverCard = document.getElementById('riverCard');
+            
+            if (street === 'preflop') {
+                boardSection.style.display = 'none';
+            } else {
+                boardSection.style.display = 'block';
+                turnCard.style.display = (street === 'turn' || street === 'river') ? 'block' : 'none';
+                riverCard.style.display = street === 'river' ? 'block' : 'none';
+            }
+        }
+        
+        function quickBet(ratio) {
+            const pot = parseFloat(document.getElementById('pot').value) || 0;
+            document.getElementById('toCall').value = Math.round(pot * ratio);
+        }
+        
+        function getCard(rankId, suitId) {
+            const rank = document.getElementById(rankId).value;
+            const suit = document.getElementById(suitId).value;
+            if (rank && suit) return rank + suit;
+            return null;
+        }
+        
+        function analyze() {
+            const card1 = getCard('card1Rank', 'card1Suit');
+            const card2 = getCard('card2Rank', 'card2Suit');
+            
+            if (!card1 || !card2) {
+                alert('홀 카드를 선택하세요');
+                return;
+            }
+            
+            const board = [];
+            if (currentStreet !== 'preflop') {
+                for (let i = 1; i <= 5; i++) {
+                    if (i <= 3 || (i === 4 && (currentStreet === 'turn' || currentStreet === 'river')) || (i === 5 && currentStreet === 'river')) {
+                        const card = getCard('board' + i + 'Rank', 'board' + i + 'Suit');
+                        if (card) board.push(card);
+                    }
+                }
+            }
+            
+            const data = {
+                hole_cards: [card1, card2],
+                board: board,
+                pot: parseFloat(document.getElementById('pot').value) || 100,
+                to_call: parseFloat(document.getElementById('toCall').value) || 0,
+                my_position: document.getElementById('myPosition').value,
+                villain_position: document.getElementById('villainPosition').value,
+                num_players: parseInt(document.getElementById('numPlayers').value),
+                street: currentStreet
+            };
+            
+            fetch('/analyze', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            })
+            .then(res => res.json())
+            .then(result => {
+                if (result.error) {
+                    alert(result.error);
+                    return;
+                }
+                
+                document.getElementById('resultSection').style.display = 'block';
+                document.getElementById('equity').textContent = '승률: ' + result.equity + '%';
+                document.getElementById('action').textContent = result.action;
+                document.getElementById('action').style.background = result.color;
+                document.getElementById('detail').textContent = result.detail;
+            })
+            .catch(err => alert('오류: ' + err));
+        }
+        
+        function resetAll() {
+            // 카드 초기화
+            ['card1Rank', 'card1Suit', 'card2Rank', 'card2Suit'].forEach(id => {
+                document.getElementById(id).selectedIndex = 0;
+            });
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById('board' + i + 'Rank').selectedIndex = 0;
+                document.getElementById('board' + i + 'Suit').selectedIndex = 0;
+            }
+            
+            // 값 초기화
+            document.getElementById('pot').value = 100;
+            document.getElementById('toCall').value = 0;
+            
+            // 스트릿 초기화
+            setStreet('preflop');
+            document.querySelectorAll('.street-btn')[0].classList.add('active');
+            
+            // 결과 숨기기
+            document.getElementById('resultSection').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,107 @@
+{
+  "description": "기본 GTO 솔루션 - 100BB 6-max",
+  
+  "preflop": {
+    "open_sizing": {
+      "UTG": 2.5,
+      "HJ": 2.5,
+      "CO": 2.5,
+      "BTN": 2.5,
+      "SB": 3.0
+    },
+    "3bet_sizing": {
+      "in_position": 3.0,
+      "out_of_position": 3.5
+    },
+    "4bet_sizing": 2.5,
+    "5bet_sizing": 2.2
+  },
+  
+  "postflop": {
+    "cbet_sizing": {
+      "dry_board": 0.33,
+      "wet_board": 0.67,
+      "coordinated": 0.75,
+      "paired": 0.25
+    },
+    "value_sizing": {
+      "thin_value": 0.5,
+      "strong_value": 0.75,
+      "nuts": 1.0,
+      "slow_play": 0.33
+    },
+    "bluff_sizing": {
+      "small_bluff": 0.33,
+      "medium_bluff": 0.5,
+      "polarized_bluff": 0.75
+    }
+  },
+  
+  "board_textures": {
+    "dry": {
+      "description": "드라이 보드 (레인보우, 갭 많음)",
+      "examples": ["As7d2c", "Kh4s2d"],
+      "cbet_frequency": 0.7,
+      "sizing": 0.33
+    },
+    "wet": {
+      "description": "웻 보드 (투톤, 커넥터)",
+      "examples": ["JhTs7h", "9c8d7s"],
+      "cbet_frequency": 0.5,
+      "sizing": 0.67
+    },
+    "coordinated": {
+      "description": "코디네이티드 보드 (모노톤, 스트레이트 가능)",
+      "examples": ["QhJh9h", "8s7s6d"],
+      "cbet_frequency": 0.35,
+      "sizing": 0.75
+    },
+    "paired": {
+      "description": "페어 보드",
+      "examples": ["Ks8s8c", "7d7c2h"],
+      "cbet_frequency": 0.6,
+      "sizing": 0.25
+    }
+  },
+  
+  "spr_strategy": {
+    "low_spr": {
+      "range": [0, 4],
+      "description": "낮은 SPR - 올인 또는 폴드 성향",
+      "strategy": "commit_or_fold"
+    },
+    "medium_spr": {
+      "range": [4, 10],
+      "description": "중간 SPR - 표준 플레이",
+      "strategy": "standard"
+    },
+    "high_spr": {
+      "range": [10, 100],
+      "description": "높은 SPR - 포지션 중요, 드로우 가치 상승",
+      "strategy": "positional_play"
+    }
+  },
+  
+  "common_spots": {
+    "srp_ip_flop": {
+      "description": "싱글 레이즈 팟, 인 포지션, 플랍",
+      "default_cbet_freq": 0.6,
+      "default_sizing": 0.33
+    },
+    "srp_oop_flop": {
+      "description": "싱글 레이즈 팟, 아웃 오브 포지션, 플랍",
+      "default_cbet_freq": 0.45,
+      "default_sizing": 0.5
+    },
+    "3bet_pot_ip": {
+      "description": "3bet 팟, 인 포지션",
+      "default_cbet_freq": 0.7,
+      "default_sizing": 0.33
+    },
+    "3bet_pot_oop": {
+      "description": "3bet 팟, 아웃 오브 포지션",
+      "default_cbet_freq": 0.5,
+      "default_sizing": 0.5
+    }
+  }
+}

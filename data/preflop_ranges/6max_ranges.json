@@ -1,0 +1,179 @@
+{
+  "description": "6-Max GTO 기반 프리플랍 레인지 (100BB 기준)",
+  "positions": ["UTG", "HJ", "CO", "BTN", "SB", "BB"],
+  
+  "ranges": {
+    "UTG": {
+      "open": {
+        "hands": [
+          "AA", "KK", "QQ", "JJ", "TT", "99", "88", "77",
+          "AKs", "AQs", "AJs", "ATs", "A5s", "A4s",
+          "AKo", "AQo", "AJo",
+          "KQs", "KJs", "KTs",
+          "QJs", "QTs",
+          "JTs",
+          "T9s",
+          "98s",
+          "87s",
+          "76s"
+        ],
+        "description": "UTG 오픈 레인지 (~15%)"
+      }
+    },
+    
+    "HJ": {
+      "open": {
+        "hands": [
+          "AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66",
+          "AKs", "AQs", "AJs", "ATs", "A9s", "A5s", "A4s", "A3s",
+          "AKo", "AQo", "AJo", "ATo",
+          "KQs", "KJs", "KTs", "K9s",
+          "KQo",
+          "QJs", "QTs", "Q9s",
+          "JTs", "J9s",
+          "T9s", "T8s",
+          "98s", "97s",
+          "87s", "86s",
+          "76s", "75s",
+          "65s",
+          "54s"
+        ],
+        "description": "HJ 오픈 레인지 (~20%)"
+      },
+      "vs_utg_open": {
+        "call": ["QQ", "JJ", "TT", "99", "88", "77", "AQs", "AJs", "ATs", "KQs", "QJs", "JTs", "T9s", "98s", "87s", "76s"],
+        "3bet": ["AA", "KK", "AKs", "AKo", "A5s", "A4s"],
+        "description": "UTG 오픈에 대한 HJ 대응"
+      }
+    },
+    
+    "CO": {
+      "open": {
+        "hands": [
+          "AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55",
+          "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s",
+          "AKo", "AQo", "AJo", "ATo", "A9o",
+          "KQs", "KJs", "KTs", "K9s", "K8s",
+          "KQo", "KJo",
+          "QJs", "QTs", "Q9s", "Q8s",
+          "QJo",
+          "JTs", "J9s", "J8s",
+          "JTo",
+          "T9s", "T8s", "T7s",
+          "98s", "97s", "96s",
+          "87s", "86s", "85s",
+          "76s", "75s",
+          "65s", "64s",
+          "54s", "53s",
+          "43s"
+        ],
+        "description": "CO 오픈 레인지 (~27%)"
+      },
+      "vs_utg_open": {
+        "call": ["JJ", "TT", "99", "88", "77", "66", "AQs", "AJs", "ATs", "A5s", "KQs", "KJs", "QJs", "JTs", "T9s", "98s", "87s", "76s", "65s"],
+        "3bet": ["AA", "KK", "QQ", "AKs", "AKo", "A4s", "A3s"],
+        "description": "UTG 오픈에 대한 CO 대응"
+      },
+      "vs_hj_open": {
+        "call": ["TT", "99", "88", "77", "66", "AJs", "ATs", "A5s", "KQs", "KJs", "QJs", "JTs", "T9s", "98s", "87s", "76s", "65s", "54s"],
+        "3bet": ["AA", "KK", "QQ", "JJ", "AKs", "AQs", "AKo", "A4s", "A3s"],
+        "description": "HJ 오픈에 대한 CO 대응"
+      }
+    },
+    
+    "BTN": {
+      "open": {
+        "hands": [
+          "AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44", "33", "22",
+          "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s",
+          "AKo", "AQo", "AJo", "ATo", "A9o", "A8o", "A7o", "A6o", "A5o", "A4o",
+          "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s", "K5s", "K4s",
+          "KQo", "KJo", "KTo", "K9o",
+          "QJs", "QTs", "Q9s", "Q8s", "Q7s", "Q6s",
+          "QJo", "QTo", "Q9o",
+          "JTs", "J9s", "J8s", "J7s", "J6s",
+          "JTo", "J9o",
+          "T9s", "T8s", "T7s", "T6s",
+          "T9o", "T8o",
+          "98s", "97s", "96s", "95s",
+          "98o", "97o",
+          "87s", "86s", "85s", "84s",
+          "87o", "86o",
+          "76s", "75s", "74s",
+          "76o",
+          "65s", "64s", "63s",
+          "65o",
+          "54s", "53s", "52s",
+          "54o",
+          "43s", "42s",
+          "32s"
+        ],
+        "description": "BTN 오픈 레인지 (~48%)"
+      },
+      "vs_co_open": {
+        "call": ["TT", "99", "88", "77", "66", "55", "AJs", "ATs", "A9s", "A5s", "KQs", "KJs", "KTs", "QJs", "QTs", "JTs", "J9s", "T9s", "T8s", "98s", "97s", "87s", "86s", "76s", "75s", "65s", "64s", "54s", "53s", "43s"],
+        "3bet": ["AA", "KK", "QQ", "JJ", "AKs", "AQs", "AKo", "AQo", "A4s", "A3s", "A2s", "K9s", "Q9s", "J8s", "T7s", "96s", "85s", "74s", "63s", "52s"],
+        "description": "CO 오픈에 대한 BTN 대응"
+      }
+    },
+    
+    "SB": {
+      "open": {
+        "hands": [
+          "AA", "KK", "QQ", "JJ", "TT", "99", "88", "77", "66", "55", "44",
+          "AKs", "AQs", "AJs", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s",
+          "AKo", "AQo", "AJo", "ATo", "A9o", "A8o", "A7o",
+          "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s",
+          "KQo", "KJo", "KTo",
+          "QJs", "QTs", "Q9s", "Q8s",
+          "QJo", "QTo",
+          "JTs", "J9s", "J8s",
+          "JTo",
+          "T9s", "T8s", "T7s",
+          "T9o",
+          "98s", "97s", "96s",
+          "87s", "86s",
+          "76s", "75s",
+          "65s", "64s",
+          "54s", "53s"
+        ],
+        "description": "SB 오픈 레인지 vs BB (~40%)"
+      },
+      "vs_btn_open": {
+        "call": ["99", "88", "77", "66", "55", "44", "ATs", "A9s", "A8s", "A5s", "A4s", "KJs", "KTs", "K9s", "QJs", "QTs", "Q9s", "JTs", "J9s", "T9s", "T8s", "98s", "97s", "87s", "86s", "76s", "75s", "65s", "64s", "54s"],
+        "3bet": ["AA", "KK", "QQ", "JJ", "TT", "AKs", "AQs", "AJs", "AKo", "AQo", "AJo", "A3s", "A2s", "K8s", "Q8s", "J8s", "T7s", "96s", "85s", "74s"],
+        "description": "BTN 오픈에 대한 SB 대응"
+      }
+    },
+    
+    "BB": {
+      "vs_sb_open": {
+        "call": ["99", "88", "77", "66", "55", "44", "33", "22", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "ATo", "A9o", "A8o", "A7o", "A6o", "A5o", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s", "K5s", "KJo", "KTo", "K9o", "K8o", "QJs", "QTs", "Q9s", "Q8s", "Q7s", "Q6s", "QJo", "QTo", "Q9o", "JTs", "J9s", "J8s", "J7s", "JTo", "J9o", "T9s", "T8s", "T7s", "T6s", "T9o", "T8o", "98s", "97s", "96s", "95s", "98o", "97o", "87s", "86s", "85s", "84s", "87o", "76s", "75s", "74s", "76o", "65s", "64s", "63s", "65o", "54s", "53s", "52s", "43s", "42s", "32s"],
+        "3bet": ["AA", "KK", "QQ", "JJ", "TT", "AKs", "AQs", "AJs", "AKo", "AQo", "AJo", "K4s", "K3s", "K2s", "Q5s", "Q4s", "J6s", "T5s", "94s", "83s", "73s", "62s", "52s"],
+        "description": "SB 오픈에 대한 BB 대응 (와이드하게 디펜드)"
+      },
+      "vs_btn_open": {
+        "call": ["TT", "99", "88", "77", "66", "55", "44", "33", "22", "ATs", "A9s", "A8s", "A7s", "A6s", "A5s", "A4s", "A3s", "A2s", "ATo", "A9o", "A8o", "A7o", "KQs", "KJs", "KTs", "K9s", "K8s", "K7s", "K6s", "KQo", "KJo", "KTo", "K9o", "QJs", "QTs", "Q9s", "Q8s", "Q7s", "QJo", "QTo", "Q9o", "JTs", "J9s", "J8s", "J7s", "JTo", "J9o", "T9s", "T8s", "T7s", "T9o", "T8o", "98s", "97s", "96s", "98o", "87s", "86s", "85s", "87o", "76s", "75s", "74s", "65s", "64s", "54s", "53s", "43s"],
+        "3bet": ["AA", "KK", "QQ", "JJ", "AKs", "AQs", "AJs", "AKo", "AQo", "A6o", "A5o", "A4o", "K5s", "K4s", "Q6s", "J6s", "T6s", "95s", "84s", "73s", "63s", "52s"],
+        "description": "BTN 오픈에 대한 BB 대응"
+      },
+      "vs_co_open": {
+        "call": ["TT", "99", "88", "77", "66", "55", "44", "ATs", "A9s", "A8s", "A7s", "A5s", "A4s", "A3s", "KQs", "KJs", "KTs", "K9s", "K8s", "KQo", "KJo", "QJs", "QTs", "Q9s", "Q8s", "QJo", "JTs", "J9s", "J8s", "JTo", "T9s", "T8s", "T7s", "98s", "97s", "96s", "87s", "86s", "76s", "75s", "65s", "64s", "54s"],
+        "3bet": ["AA", "KK", "QQ", "JJ", "AKs", "AQs", "AJs", "AKo", "AQo", "A6s", "A2s", "K7s", "K6s", "Q7s", "J7s", "T6s", "95s", "85s", "74s"],
+        "description": "CO 오픈에 대한 BB 대응"
+      }
+    }
+  },
+  
+  "4bet_ranges": {
+    "description": "3bet에 대한 4bet 레인지",
+    "standard": {
+      "value": ["AA", "KK", "AKs"],
+      "bluff": ["A5s", "A4s"]
+    },
+    "aggressive": {
+      "value": ["AA", "KK", "QQ", "AKs", "AKo"],
+      "bluff": ["A5s", "A4s", "A3s", "K5s"]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+# Poker Solver Dependencies
+
+# Core
+treys>=0.1.8                    # Fast hand evaluation
+numpy>=1.24.0                   # Numerical computations
+
+# UI
+PyQt6>=6.5.0                    # GUI framework
+PyQt6-Qt6>=6.5.0                # Qt6 binaries
+
+# Screen Capture & OCR
+opencv-python>=4.8.0            # Image processing
+easyocr>=1.7.0                  # OCR for card recognition
+Pillow>=10.0.0                  # Image handling
+
+# Automation (macOS specific versions)
+pyautogui>=0.9.54               # Mouse/keyboard automation
+pyobjc-core==11.0               # Pinned for Python 3.9 compatibility
+pyobjc-framework-Quartz==11.0   # Pinned for Python 3.9 compatibility
+
+# Utilities
+pydantic>=2.0.0                 # Data validation
+
+# Web
+flask>=3.0.0                    # Web server
