@@ -283,7 +283,7 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 </div>
                 <div class="col">
                     <label>플레이어 수</label>
-                    <select id="numPlayers"><option value="2">2명</option><option value="3">3명</option><option value="4">4명</option></select>
+                    <select id="numPlayers"><option value="2">2명</option><option value="3">3명</option><option value="4">4명</option><option value="5">5명</option><option value="6" selected>6명</option></select>
                 </div>
             </div>
         </div>
