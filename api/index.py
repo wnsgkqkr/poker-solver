@@ -63,8 +63,8 @@ def estimate_equity(hand_str, board_len, num_opponents):
     return max(5, min(95, equity))
 
 
-def analyze_preflop(hole_cards, pot, to_call, my_pos, villain_pos, num_players):
-    """프리플랍 분석"""
+def analyze_preflop(hole_cards, pot, to_call, my_pos, villain_pos, num_players, eff_stack):
+    """프리플랍 분석 (스택 사이즈 고려)"""
     hand_str = cards_to_hand(hole_cards[0], hole_cards[1])
     equity = estimate_equity(hand_str, 0, num_players - 1)
     
@@ -72,133 +72,152 @@ def analyze_preflop(hole_cards, pot, to_call, my_pos, villain_pos, num_players):
     tier2 = ["QQ", "JJ", "AKs", "AKo"]
     tier3 = ["TT", "99", "AQs", "AQo", "AJs", "KQs"]
     tier4 = ["88", "77", "ATs", "AJo", "KJs", "KQo", "QJs", "JTs"]
+    tier5 = ["66", "55", "A9s", "KTs", "QTs", "T9s", "98s", "87s", "76s", "65s", "A8s", "A7s", "A6s", "A5s", "K9s"]
     
-    open_range = tier1 + tier2 + tier3 + tier4 + ["66", "55", "A9s", "KTs", "QTs", "T9s", "98s", "87s", "76s", "65s"]
+    # 스택 깊이 분류
+    if eff_stack <= 25:
+        stack_type = "short"
+    elif eff_stack <= 50:
+        stack_type = "mid"
+    else:
+        stack_type = "deep"
     
-    detail = f"핸드: {hand_str}\n내 포지션: {my_pos}\n상대 포지션: {villain_pos}\n승률: {equity:.0f}%\n"
+    detail = f"핸드: {hand_str}\n스택: {eff_stack}bb ({stack_type})\n내 포지션: {my_pos}\n상대 포지션: {villain_pos}\n승률: {equity:.0f}%\n"
+    
+    # 숏스택 전략 (25bb 이하) - Push/Fold
+    if stack_type == "short":
+        push_range = tier1 + tier2 + tier3 + ["A9s", "A8s", "A7s", "A5s", "KTs", "QTs", "JTs", "44", "33", "22"]
+        if to_call == 0:
+            if hand_str in push_range:
+                return {'action': f'ALL-IN {eff_stack}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 푸시 {eff_stack}bb', 'equity': round(equity, 1)}
+            else:
+                return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
+        else:
+            call_range = tier1 + tier2 + ["TT", "99", "AQs", "AQo"]
+            if to_call >= eff_stack * 0.5:  # 절반 이상이면 올인 콜
+                if hand_str in call_range:
+                    return {'action': f'ALL-IN {eff_stack}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 올인 콜', 'equity': round(equity, 1)}
+            elif hand_str in tier1 + tier2:
+                return {'action': f'ALL-IN {eff_stack}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 올인', 'equity': round(equity, 1)}
+            return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
+    
+    open_range = tier1 + tier2 + tier3 + tier4 + tier5
     
     if to_call == 0:
+        # 오픈 레이즈
         if hand_str in open_range:
-            return {
-                'action': 'RAISE 2.5BB',
-                'color': '#27ae60',
-                'detail': detail + '\n→ 오픈!',
-                'equity': round(equity, 1)
-            }
+            open_size = 2.5 if stack_type == "deep" else 2.2
+            return {'action': f'RAISE {open_size}bb', 'color': '#27ae60', 'detail': detail + f'\n→ 오픈 {open_size}bb', 'equity': round(equity, 1)}
         else:
-            return {
-                'action': 'FOLD',
-                'color': '#e74c3c',
-                'detail': detail + '\n→ 폴드',
-                'equity': round(equity, 1)
-            }
+            return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
     else:
+        # vs 레이즈
         if hand_str in tier1:
-            raise_size = to_call * 3
-            return {
-                'action': f'RAISE ${raise_size:.0f}',
-                'color': '#9b59b6',
-                'detail': detail + f'\n→ 4bet ${raise_size:.0f}',
-                'equity': round(equity, 1)
-            }
+            raise_size = min(to_call * 3, eff_stack)
+            if raise_size >= eff_stack * 0.9:
+                return {'action': f'ALL-IN {eff_stack}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 올인', 'equity': round(equity, 1)}
+            return {'action': f'RAISE {raise_size:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 4bet {raise_size:.1f}bb', 'equity': round(equity, 1)}
+        
         elif hand_str in tier2:
-            if random.random() < 0.75:
-                raise_size = to_call * 3
-                return {
-                    'action': f'RAISE ${raise_size:.0f}',
-                    'color': '#9b59b6',
-                    'detail': detail + f'\n→ 3bet ${raise_size:.0f}',
-                    'equity': round(equity, 1)
-                }
-            else:
-                return {
-                    'action': f'CALL ${to_call:.0f}',
-                    'color': '#3498db',
-                    'detail': detail + f'\n→ 콜 ${to_call:.0f}',
-                    'equity': round(equity, 1)
-                }
+            if stack_type == "mid":  # 미들스택은 3bet/fold
+                raise_size = min(to_call * 3, eff_stack)
+                if raise_size >= eff_stack * 0.9:
+                    return {'action': f'ALL-IN {eff_stack}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 올인', 'equity': round(equity, 1)}
+                return {'action': f'RAISE {raise_size:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 3bet {raise_size:.1f}bb', 'equity': round(equity, 1)}
+            else:  # 딥스택은 콜도 OK
+                if random.random() < 0.7:
+                    raise_size = to_call * 3
+                    return {'action': f'RAISE {raise_size:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 3bet {raise_size:.1f}bb', 'equity': round(equity, 1)}
+                return {'action': f'CALL {to_call}bb', 'color': '#3498db', 'detail': detail + f'\n→ 콜 {to_call}bb', 'equity': round(equity, 1)}
+        
         elif hand_str in tier3:
-            if random.random() < 0.6:
-                return {
-                    'action': f'CALL ${to_call:.0f}',
-                    'color': '#3498db',
-                    'detail': detail + f'\n→ 콜 ${to_call:.0f}',
-                    'equity': round(equity, 1)
-                }
-            else:
+            if stack_type == "deep" and to_call <= 3:  # 딥스택 + 작은 레이즈
+                if random.random() < 0.5:
+                    return {'action': f'CALL {to_call}bb', 'color': '#3498db', 'detail': detail + f'\n→ 콜 {to_call}bb', 'equity': round(equity, 1)}
                 raise_size = to_call * 3
-                return {
-                    'action': f'RAISE ${raise_size:.0f}',
-                    'color': '#9b59b6',
-                    'detail': detail + f'\n→ 3bet ${raise_size:.0f}',
-                    'equity': round(equity, 1)
-                }
-        elif hand_str in tier4 and to_call <= pot * 0.4:
-            return {
-                'action': f'CALL ${to_call:.0f}',
-                'color': '#3498db',
-                'detail': detail + f'\n→ 콜 ${to_call:.0f}',
-                'equity': round(equity, 1)
-            }
-        else:
-            return {
-                'action': 'FOLD',
-                'color': '#e74c3c',
-                'detail': detail + '\n→ 폴드',
-                'equity': round(equity, 1)
-            }
+                return {'action': f'RAISE {raise_size:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 3bet {raise_size:.1f}bb', 'equity': round(equity, 1)}
+            elif to_call <= pot * 0.3:
+                return {'action': f'CALL {to_call}bb', 'color': '#3498db', 'detail': detail + f'\n→ 콜 {to_call}bb', 'equity': round(equity, 1)}
+            return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
+        
+        elif hand_str in tier4 + tier5:
+            # 스펙 핸드 - 딥스택 + 좋은 오즈에서만 콜
+            if stack_type == "deep" and to_call <= 3:
+                return {'action': f'CALL {to_call}bb', 'color': '#3498db', 'detail': detail + f'\n→ 콜 {to_call}bb (셋마이닝/드로우)', 'equity': round(equity, 1)}
+            return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
+        
+        return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
 
 
-def analyze_postflop(hole_cards, board, pot, to_call, num_players):
-    """포스트플랍 분석"""
+def analyze_postflop(hole_cards, board, pot, to_call, num_players, eff_stack):
+    """포스트플랍 분석 (SPR 고려)"""
     hand_str = cards_to_hand(hole_cards[0], hole_cards[1])
     equity = estimate_equity(hand_str, len(board), num_players - 1)
     
-    detail = f"승률: {equity:.0f}%\n팟: ${pot:.0f}\n"
+    # SPR (Stack to Pot Ratio) 계산
+    remaining_stack = eff_stack - pot  # 대략적 남은 스택
+    spr = remaining_stack / pot if pot > 0 else 10
+    
+    if spr <= 2:
+        spr_type = "low"
+    elif spr <= 6:
+        spr_type = "mid"
+    else:
+        spr_type = "high"
+    
+    detail = f"승률: {equity:.0f}%\n스택: {eff_stack}bb\n팟: {pot}bb\nSPR: {spr:.1f} ({spr_type})\n"
     
     if to_call > 0:
         pot_odds = to_call / (pot + to_call) * 100
         ev = (equity/100 * (pot + to_call)) - ((1 - equity/100) * to_call)
         is_profitable = equity > pot_odds
         
-        detail += f"콜: ${to_call:.0f}\n팟오즈: {pot_odds:.0f}%\nEV: {'+' if ev >= 0 else ''}{ev:.1f}\n"
+        detail += f"콜: {to_call}bb\n팟오즈: {pot_odds:.0f}%\nEV: {'+' if ev >= 0 else ''}{ev:.1f}bb\n"
+        
+        # 낮은 SPR - 커밋 or 폴드
+        if spr_type == "low":
+            if equity > 45:
+                return {'action': f'ALL-IN {remaining_stack:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 올인 (Low SPR)', 'equity': round(equity, 1)}
+            elif is_profitable:
+                return {'action': f'CALL {to_call}bb', 'color': '#27ae60', 'detail': detail + f'\n→ 콜 {to_call}bb', 'equity': round(equity, 1)}
+            return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
         
         if equity > 70:
-            raise_size = pot + to_call
-            return {'action': f'RAISE ${raise_size:.0f}', 'color': '#9b59b6', 'detail': detail + f'\n→ 레이즈 ${raise_size:.0f}', 'equity': round(equity, 1)}
+            raise_size = min(pot + to_call, remaining_stack)
+            if raise_size >= remaining_stack * 0.9:
+                return {'action': f'ALL-IN {remaining_stack:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 올인', 'equity': round(equity, 1)}
+            return {'action': f'RAISE {raise_size:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 레이즈 {raise_size:.1f}bb', 'equity': round(equity, 1)}
         elif equity > 55:
             if random.random() < 0.7:
-                return {'action': f'CALL ${to_call:.0f}', 'color': '#27ae60', 'detail': detail + f'\n→ 콜 ${to_call:.0f}', 'equity': round(equity, 1)}
+                return {'action': f'CALL {to_call}bb', 'color': '#27ae60', 'detail': detail + f'\n→ 콜 {to_call}bb', 'equity': round(equity, 1)}
             else:
                 raise_size = pot + to_call
-                return {'action': f'RAISE ${raise_size:.0f}', 'color': '#9b59b6', 'detail': detail + f'\n→ 레이즈 ${raise_size:.0f}', 'equity': round(equity, 1)}
+                return {'action': f'RAISE {raise_size:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 레이즈 {raise_size:.1f}bb', 'equity': round(equity, 1)}
         elif is_profitable:
-            return {'action': f'CALL ${to_call:.0f}', 'color': '#27ae60', 'detail': detail + f'\n→ 콜 ${to_call:.0f}', 'equity': round(equity, 1)}
-        elif equity > 25:
+            return {'action': f'CALL {to_call}bb', 'color': '#27ae60', 'detail': detail + f'\n→ 콜 {to_call}bb', 'equity': round(equity, 1)}
+        elif equity > 25 and spr_type == "high":  # 높은 SPR에서만 드로우 콜
             if random.random() < 0.35:
-                return {'action': f'CALL ${to_call:.0f}', 'color': '#f39c12', 'detail': detail + f'\n→ 드로우 콜', 'equity': round(equity, 1)}
-            else:
-                return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
-        else:
-            return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
+                return {'action': f'CALL {to_call}bb', 'color': '#f39c12', 'detail': detail + f'\n→ 드로우 콜 (Implied Odds)', 'equity': round(equity, 1)}
+        return {'action': 'FOLD', 'color': '#e74c3c', 'detail': detail + '\n→ 폴드', 'equity': round(equity, 1)}
     else:
+        # 낮은 SPR - 올인 or 체크
+        if spr_type == "low" and equity > 50:
+            return {'action': f'ALL-IN {remaining_stack:.1f}bb', 'color': '#9b59b6', 'detail': detail + f'\n→ 올인 (Low SPR)', 'equity': round(equity, 1)}
+        
         if equity > 70:
             bet_size = pot * 0.67
-            return {'action': f'BET ${bet_size:.0f}', 'color': '#27ae60', 'detail': detail + f'\n→ 베팅 ${bet_size:.0f}', 'equity': round(equity, 1)}
+            return {'action': f'BET {bet_size:.1f}bb', 'color': '#27ae60', 'detail': detail + f'\n→ 베팅 {bet_size:.1f}bb', 'equity': round(equity, 1)}
         elif equity > 55:
             if random.random() < 0.6:
                 bet_size = pot * 0.5
-                return {'action': f'BET ${bet_size:.0f}', 'color': '#27ae60', 'detail': detail + f'\n→ 베팅 ${bet_size:.0f}', 'equity': round(equity, 1)}
-            else:
-                return {'action': 'CHECK', 'color': '#7f8c8d', 'detail': detail + '\n→ 체크', 'equity': round(equity, 1)}
+                return {'action': f'BET {bet_size:.1f}bb', 'color': '#27ae60', 'detail': detail + f'\n→ 베팅 {bet_size:.1f}bb', 'equity': round(equity, 1)}
+            return {'action': 'CHECK', 'color': '#7f8c8d', 'detail': detail + '\n→ 체크', 'equity': round(equity, 1)}
         elif equity > 35:
             if random.random() < 0.25:
                 bet_size = pot * 0.33
-                return {'action': f'BET ${bet_size:.0f}', 'color': '#3498db', 'detail': detail + f'\n→ 베팅 ${bet_size:.0f}', 'equity': round(equity, 1)}
-            else:
-                return {'action': 'CHECK', 'color': '#7f8c8d', 'detail': detail + '\n→ 체크', 'equity': round(equity, 1)}
-        else:
+                return {'action': f'BET {bet_size:.1f}bb', 'color': '#3498db', 'detail': detail + f'\n→ 베팅 {bet_size:.1f}bb (블러프)', 'equity': round(equity, 1)}
             return {'action': 'CHECK', 'color': '#7f8c8d', 'detail': detail + '\n→ 체크', 'equity': round(equity, 1)}
+        return {'action': 'CHECK', 'color': '#7f8c8d', 'detail': detail + '\n→ 체크', 'equity': round(equity, 1)}
 
 
 # HTML 템플릿
@@ -310,16 +329,23 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         </div>
         
         <div class="section">
-            <div class="section-title">💰 팟 & 베팅</div>
+            <div class="section-title">💰 스택 & 팟</div>
             <div class="row">
-                <div class="col"><label>팟</label><input type="number" id="pot" value="100" min="0"></div>
-                <div class="col"><label>상대 베팅</label><input type="number" id="toCall" value="0" min="0"></div>
+                <div class="col"><label>Eff. Stack (BB)</label><input type="number" id="effStack" value="100" min="1"></div>
+                <div class="col"><label>팟 (BB)</label><input type="number" id="pot" value="2.5" min="0" step="0.5"></div>
+                <div class="col"><label>상대 베팅</label><input type="number" id="toCall" value="0" min="0" step="0.5"></div>
             </div>
             <div class="quick-bets">
                 <button class="quick-bet" onclick="quickBet(0.33)">1/3</button>
                 <button class="quick-bet" onclick="quickBet(0.5)">1/2</button>
                 <button class="quick-bet" onclick="quickBet(0.67)">2/3</button>
                 <button class="quick-bet" onclick="quickBet(1.0)">팟</button>
+            </div>
+            <div class="quick-bets" style="margin-top:5px;">
+                <button class="quick-bet" onclick="setStack(20)">20bb</button>
+                <button class="quick-bet" onclick="setStack(50)">50bb</button>
+                <button class="quick-bet" onclick="setStack(100)">100bb</button>
+                <button class="quick-bet" onclick="setStack(200)">200bb</button>
             </div>
         </div>
         
@@ -349,7 +375,11 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         }
         
         function quickBet(ratio) {
-            document.getElementById('toCall').value = Math.round((parseFloat(document.getElementById('pot').value)||0) * ratio);
+            document.getElementById('toCall').value = ((parseFloat(document.getElementById('pot').value)||0) * ratio).toFixed(1);
+        }
+        
+        function setStack(bb) {
+            document.getElementById('effStack').value = bb;
         }
         
         function getCard(rid, sid) {
@@ -376,7 +406,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     hole_cards: [c1, c2], board: board,
-                    pot: parseFloat(document.getElementById('pot').value) || 100,
+                    eff_stack: parseFloat(document.getElementById('effStack').value) || 100,
+                    pot: parseFloat(document.getElementById('pot').value) || 2.5,
                     to_call: parseFloat(document.getElementById('toCall').value) || 0,
                     my_position: document.getElementById('myPosition').value,
                     villain_position: document.getElementById('villainPosition').value,
@@ -398,7 +429,8 @@ HTML_TEMPLATE = '''<!DOCTYPE html>
         function resetAll() {
             ['card1Rank','card1Suit','card2Rank','card2Suit'].forEach(id => document.getElementById(id).selectedIndex = 0);
             for (let i = 1; i <= 5; i++) { document.getElementById('b'+i+'r').selectedIndex = 0; document.getElementById('b'+i+'s').selectedIndex = 0; }
-            document.getElementById('pot').value = 100;
+            document.getElementById('effStack').value = 100;
+            document.getElementById('pot').value = 2.5;
             document.getElementById('toCall').value = 0;
             setStreet('preflop');
             document.getElementById('resultSection').style.display = 'none';
@@ -424,19 +456,20 @@ class handler(BaseHTTPRequestHandler):
             try:
                 hole_cards = data.get('hole_cards', [])
                 board = data.get('board', [])
-                pot = float(data.get('pot', 100))
+                eff_stack = float(data.get('eff_stack', 100))
+                pot = float(data.get('pot', 2.5))
                 to_call = float(data.get('to_call', 0))
                 my_pos = data.get('my_position', 'BTN')
                 villain_pos = data.get('villain_position', 'CO')
-                num_players = int(data.get('num_players', 2))
+                num_players = int(data.get('num_players', 6))
                 street = data.get('street', 'preflop')
                 
                 if len(hole_cards) != 2:
                     result = {'error': '홀 카드 2장을 선택하세요'}
                 elif street == 'preflop':
-                    result = analyze_preflop(hole_cards, pot, to_call, my_pos, villain_pos, num_players)
+                    result = analyze_preflop(hole_cards, pot, to_call, my_pos, villain_pos, num_players, eff_stack)
                 else:
-                    result = analyze_postflop(hole_cards, board, pot, to_call, num_players)
+                    result = analyze_postflop(hole_cards, board, pot, to_call, num_players, eff_stack)
             except Exception as e:
                 result = {'error': str(e)}
             
