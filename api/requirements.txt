@@ -1,0 +1,2 @@
+# Vercel serverless - 최소 의존성만
+# api/index.py는 표준 라이브러리만 사용
